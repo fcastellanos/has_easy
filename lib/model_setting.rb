@@ -38,11 +38,13 @@ class ModelSetting < ActiveRecord::Base
   end
 
   def value=(v)
-    method_missing(:value=, v.to_yaml)
+    # method_missing(:value=, v.to_yaml)
+    self[:value] = v.to_yaml
     self.value_cache = v
   end
 
   def value
-    self.value_cache ||= YAML.load(method_missing(:value))
+    # self.value_cache ||= YAML.load(method_missing(:value))
+    self.value_cache ||= YAML.load(self[:value])
   end
 end
