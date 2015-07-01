@@ -1,57 +1,55 @@
-module Izzle
-  module HasEasy
-    module AssocationExtension
-      def save
-        do_save(false)
-      end
+module HasEasy
+  module AssocationExtension
+    def save
+      do_save(false)
+    end
 
-      def save!
-        do_save(true)
-      end
+    def save!
+      do_save(true)
+    end
 
-      def []=(name, value)
-        proxy_association.owner.set_has_easy_thing(proxy_association.reflection.name, name, value)
-      end
+    def []=(name, value)
+      proxy_association.owner.set_has_easy_thing(proxy_association.reflection.name, name, value)
+    end
 
-      def [](name)
-        proxy_association.owner.get_has_easy_thing(proxy_association.reflection.name, name)
-      end
+    def [](name)
+      proxy_association.owner.get_has_easy_thing(proxy_association.reflection.name, name)
+    end
 
-      def valid?
-        valid = true
+    def valid?
+      valid = true
 
-        proxy_association.target.each do |thing|
-          thing.model_cache = proxy_association.owner
-          unless thing.valid?
-            thing.errors.each{ |attr, msg| proxy_association.owner.errors.add(proxy_association.reflection.name, msg) }
-            valid = false
-          end
+      proxy_association.target.each do |thing|
+        thing.model_cache = proxy_association.owner
+        unless thing.valid?
+          thing.errors.each{ |attr, msg| proxy_association.owner.errors.add(proxy_association.reflection.name, msg) }
+          valid = false
         end
-
-        valid
       end
 
-      private
+      valid
+    end
 
-      def do_save(with_bang)
-        success = true
+    private
 
-        proxy_association.target.each do |thing|
-          next if !thing.changed?
+    def do_save(with_bang)
+      success = true
 
-          thing.model_cache = proxy_association.owner
+      proxy_association.target.each do |thing|
+        next if !thing.changed?
 
-          if with_bang
-            thing.save!
-          elsif thing.save == false
-            # delegate the errors to the proxy owner
-            thing.errors.each { |attr,msg| proxy_association.owner.errors.add(proxy_association.reflection.name, msg) }
-            success = false
-          end
+        thing.model_cache = proxy_association.owner
+
+        if with_bang
+          thing.save!
+        elsif thing.save == false
+          # delegate the errors to the proxy owner
+          thing.errors.each { |attr,msg| proxy_association.owner.errors.add(proxy_association.reflection.name, msg) }
+          success = false
         end
-
-        success
       end
+
+      success
     end
   end
 end

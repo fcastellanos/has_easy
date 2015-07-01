@@ -6,7 +6,7 @@ $:.unshift File.dirname(__FILE__) + '/../lib'
 
 require 'has_easy'
 
-ActiveRecord::Base.send(:include, Izzle::HasEasy)
+ActiveRecord::Base.send(:include, HasEasy)
 ActiveRecord::Base.establish_connection(adapter: 'sqlite3', database: ':memory:')
 
 # AR keeps printing annoying schema statements
