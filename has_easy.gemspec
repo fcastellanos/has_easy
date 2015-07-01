@@ -35,7 +35,7 @@ Gem::Specification.new do |s|
     'lib/tasks/model_settings_tasks.rake',
     'test/test_model_settings.rb'
   ]
-  s.homepage = %q{https://github.com/fcastellanos/has_easy}
+  s.homepage = %q{https://github.com/fcastellanos/model_settings}
   s.licenses = ['MIT']
   s.require_paths = ['lib']
   s.rubygems_version = %q{1.10.5}
