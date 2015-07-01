@@ -5,26 +5,28 @@ require 'active_record'
 $:.unshift File.dirname(__FILE__) + '/../lib'
 
 require 'has_easy'
-ActiveRecord::Base.send(:include, Izzle::HasEasy)
 
-ActiveRecord::Base.establish_connection(:adapter => "sqlite3", :database => ":memory:")
+ActiveRecord::Base.send(:include, Izzle::HasEasy)
+ActiveRecord::Base.establish_connection(adapter: 'sqlite3', database: ':memory:')
 
 # AR keeps printing annoying schema statements
 $stdout = StringIO.new
 
 def setup_db
   ActiveRecord::Base.logger
-  ActiveRecord::Schema.define(:version => 1) do
-    create_table :has_easy_user_tests, :force => true do |t|
+  ActiveRecord::Schema.define(version: 1) do
+    create_table :has_easy_user_tests, force: true do |t|
       t.integer :client_id
     end
-    create_table :has_easy_client_tests, :force => true do
+
+    create_table :has_easy_client_tests, force: true do
     end
+
     create_table :has_easy_things do |t|
-      t.string  :model_type, :null => false
-      t.integer :model_id, :null => false
+      t.string  :model_type, null: false
+      t.integer :model_id, null: false
       t.string  :context
-      t.string  :name, :null => false
+      t.string  :name, null: false
       t.string  :value
       t.timestamps
     end
@@ -38,9 +40,9 @@ def teardown_db
 end
 
 class HasEasyClientTest < ActiveRecord::Base
-  has_many :users, :class_name => 'HasEasyUserTest', :foreign_key => 'client_id'
+  has_many :users, class_name: 'HasEasyUserTest', foreign_key: 'client_id'
   has_easy :flags do |f|
-    f.define :default_through_test_1, :default => 'client default'
+    f.define :default_through_test_1, default: 'client default'
   end
 
   def self.default_array
@@ -49,39 +51,39 @@ class HasEasyClientTest < ActiveRecord::Base
 end
 
 class HasEasyUserTest < ActiveRecord::Base
-  belongs_to :client, :class_name => 'HasEasyClientTest', :foreign_key => 'client_id'
+  belongs_to :client, class_name: 'HasEasyClientTest', foreign_key: 'client_id'
   cattr_accessor :count1, :count2
   @@count1, @@count2 = 0, 0
-  has_easy :preferences, :alias => :prefs do |p|
+  has_easy :preferences, alias: :prefs do |p|
     p.define :color
-    p.define :theme, :type_check => String
-    p.define :validate_test_1, :validate => [true, 'true', 1, 't']
-    p.define :validate_test_2, :validate => Proc.new { |value|
+    p.define :theme, type_check: String
+    p.define :validate_test_1, validate: [true, 'true', 1, 't']
+    p.define :validate_test_2, validate: Proc.new { |value|
       [true, 'true', 1, 't'].include?(value)
     }
-    p.define :validate_test_3, :validate => Proc.new { |value|
+    p.define :validate_test_3, validate: Proc.new { |value|
       raise HasEasy::ValidationError unless [true, 'true', 1, 't'].include?(value)
     }
-    p.define :validate_test_4, :validate => :validate_test_4
-    p.define :preprocess_test_1, :preprocess => Proc.new { |value| [true, 'true', 1, 't'].include?(value) ? true : false }
-    p.define :postprocess_test_1, :postprocess => Proc.new { |value| [true, 'true', 1, 't'].include?(value) ? true : false }
-    p.define :form_usage_test, :default => false,
-                               :type_check => [TrueClass, FalseClass],
-                               :preprocess => Proc.new{ |value| value == 'true' },
-                               :postprocess => Proc.new{ |value| value ? 'true' : 'false' }
+    p.define :validate_test_4, validate: :validate_test_4
+    p.define :preprocess_test_1, preprocess: Proc.new { |value| [true, 'true', 1, 't'].include?(value) ? true : false }
+    p.define :postprocess_test_1, postprocess: Proc.new { |value| [true, 'true', 1, 't'].include?(value) ? true : false }
+    p.define :form_usage_test, default: false,
+                               type_check: [TrueClass, FalseClass],
+                               preprocess: Proc.new{ |value| value == 'true' },
+                               postprocess: Proc.new{ |value| value ? 'true' : 'false' }
   end
 
   has_easy :flags do |f|
     f.define :admin
-    f.define :default_test_1, :default => 'funky town'
-    f.define :default_through_test_1, :default => 'user default', :default_through => :client
-    f.define :default_dynamic_test_1, :default_dynamic => :default_dynamic_test_1
-    f.define :default_dynamic_test_2, :default_dynamic => Proc.new{ |user| user.class.count2 += 1 }
-    f.define :default_reference, :default => HasEasyClientTest.default_array # demonstrates a bug found by swaltered
+    f.define :default_test_1, default: 'funky town'
+    f.define :default_through_test_1, default: 'user default', default_through: :client
+    f.define :default_dynamic_test_1, default_dynamic: :default_dynamic_test_1
+    f.define :default_dynamic_test_2, default_dynamic: Proc.new{ |user| user.class.count2 += 1 }
+    f.define :default_reference, default: HasEasyClientTest.default_array # demonstrates a bug found by swaltered
   end
 
   def validate_test_4(value)
-    ["1one", "2two"]
+    ['1one', '2two']
   end
 
   def default_dynamic_test_1
@@ -90,12 +92,11 @@ class HasEasyUserTest < ActiveRecord::Base
 end
 
 class HasEasyTest < Test::Unit::TestCase
-
   def setup
     setup_db
     HasEasyThing.delete_all
     @client = HasEasyClientTest.create
-    @user = @client.users.create!
+    @user   = @client.users.create!
   end
 
   def teardown
@@ -105,57 +106,57 @@ class HasEasyTest < Test::Unit::TestCase
   def test_setter_getter
     @user.set_has_easy_thing(:preferences, :color, 'red')
     assert_equal 'red', @user.get_has_easy_thing(:preferences, :color)
-    assert_equal 1, HasEasyThing.count(:conditions => { :model_type => @user.class.name, :model_id => @user.id })
+    assert_equal 1, HasEasyThing.where(model_type: @user.class.name, model_id: @user.id).count
 
     @user.set_has_easy_thing(:flags, :admin, true)
     assert_equal true, @user.get_has_easy_thing(:flags, :admin)
-    assert_equal 2, HasEasyThing.count(:conditions => { :model_type => @user.class.name, :model_id => @user.id })
+    assert_equal 2, HasEasyThing.where(model_type: @user.class.name, model_id: @user.id).count
   end
 
   def test_array_access
     @user.preferences[:color] = 'red'
     assert_equal 'red', @user.preferences[:color]
-    assert_equal 1, HasEasyThing.count(:conditions => { :model_type => @user.class.name, :model_id => @user.id })
+    assert_equal 1, HasEasyThing.where(model_type: @user.class.name, model_id: @user.id).count
 
     @user.flags[:admin] = true
     assert_equal true, @user.flags[:admin]
-    assert_equal 2, HasEasyThing.count(:conditions => { :model_type => @user.class.name, :model_id => @user.id })
+    assert_equal 2, HasEasyThing.where(model_type: @user.class.name, model_id: @user.id).count
   end
 
   def test_object_access
     @user.preferences.color = 'red'
     assert_equal 'red', @user.preferences.color
-    assert_equal 1, HasEasyThing.count(:conditions => { :model_type => @user.class.name, :model_id => @user.id })
+    assert_equal 1, HasEasyThing.where(model_type: @user.class.name, model_id: @user.id).count
 
     @user.flags.admin = true
     assert_equal true, @user.flags.admin
-    assert_equal 2, HasEasyThing.count(:conditions => { :model_type => @user.class.name, :model_id => @user.id })
+    assert_equal 2, HasEasyThing.where(model_type: @user.class.name, model_id: @user.id).count
   end
 
   def test_easy_access
     @user.preferences_color = 'red'
     assert_equal 'red', @user.preferences_color
     assert_equal true, @user.preferences_color?
-    assert_equal 1, HasEasyThing.count(:conditions => { :model_type => @user.class.name, :model_id => @user.id })
+    assert_equal 1, HasEasyThing.where(model_type: @user.class.name, model_id: @user.id).count
 
     @user.flags_admin = true
     assert_equal true, @user.flags_admin
     assert_equal true, @user.flags_admin?
-    assert_equal 2, HasEasyThing.count(:conditions => { :model_type => @user.class.name, :model_id => @user.id })
+    assert_equal 2, HasEasyThing.where(model_type: @user.class.name, model_id: @user.id).count
   end
 
   def test_overwrite
     @user.preferences[:color] = 'red'
     assert_equal 'red', @user.preferences[:color]
-    assert_equal 1, HasEasyThing.count(:conditions => { :model_type => @user.class.name, :model_id => @user.id })
+    assert_equal 1, HasEasyThing.where(model_type: @user.class.name, model_id: @user.id).count
 
     @user.preferences[:color] = 'blue'
     assert_equal 'blue', @user.preferences[:color]
-    assert_equal 1, HasEasyThing.count(:conditions => { :model_type => @user.class.name, :model_id => @user.id })
+    assert_equal 1, HasEasyThing.where(model_type: @user.class.name, model_id: @user.id).count
   end
 
   def test_alias
-    @user.preferences.theme = "savage thunder"
+    @user.preferences.theme = 'savage thunder'
     assert_equal @user.preferences[:theme], @user.prefs[:theme]
     assert_equal @user.preferences.theme, @user.prefs.theme
     assert_equal @user.preferences_theme, @user.prefs_theme
@@ -163,7 +164,7 @@ class HasEasyTest < Test::Unit::TestCase
   end
 
   def test_type_check
-    @user.preferences.theme = "savage thunder"
+    @user.preferences.theme = 'savage thunder'
     assert @user.preferences.save
 
     @user.preferences.theme = 1
@@ -216,7 +217,7 @@ class HasEasyTest < Test::Unit::TestCase
   end
 
   def test_validate_4
-    @user.preferences.validate_test_4 = "blah"
+    @user.preferences.validate_test_4 = 'blah'
     assert_raise(ActiveRecord::RecordInvalid){ @user.preferences.save! }
     assert !@user.preferences.save
 
@@ -225,7 +226,7 @@ class HasEasyTest < Test::Unit::TestCase
     assert_equal '2two', @user.errors.get(:preferences)[1]
 
     # nasty bug when the parent is a new record
-    user = @user.class.new :preferences_validate_test_4 => "blah"
+    user = @user.class.new preferences_validate_test_4: 'blah'
     assert !user.save
     assert_equal 2, @user.errors.get(:preferences).length
     assert_equal '1one', @user.errors.get(:preferences)[0]
@@ -233,46 +234,46 @@ class HasEasyTest < Test::Unit::TestCase
   end
 
   def test_validate_4_has_easy_errors_added_to_base
-    @user.preferences.validate_test_4 = "blah"
+    @user.preferences.validate_test_4 = 'blah'
     @user.preferences.save
     @preference = @user.preferences.detect { |pref|  !pref.errors.empty? }
     assert_equal ['1one','2two'], @preference.errors.full_messages
   end
 
   def test_preprocess_1
-    @user.preferences.preprocess_test_1 = "blah"
-    assert_equal "blah", @user.preferences.preprocess_test_1
-    assert_equal "blah", @user.preferences_preprocess_test_1
-    @user.preferences_preprocess_test_1 = "blah"
+    @user.preferences.preprocess_test_1 = 'blah'
+    assert_equal 'blah', @user.preferences.preprocess_test_1
+    assert_equal 'blah', @user.preferences_preprocess_test_1
+    @user.preferences_preprocess_test_1 = 'blah'
     assert_equal false, @user.preferences.preprocess_test_1
     assert_equal false, @user.preferences_preprocess_test_1
 
-    @user.preferences.preprocess_test_1 = "true"
-    assert_equal "true", @user.preferences.preprocess_test_1
-    assert_equal "true", @user.preferences_preprocess_test_1
-    @user.preferences_preprocess_test_1 = "true"
+    @user.preferences.preprocess_test_1 = 'true'
+    assert_equal 'true', @user.preferences.preprocess_test_1
+    assert_equal 'true', @user.preferences_preprocess_test_1
+    @user.preferences_preprocess_test_1 = 'true'
     assert_equal true, @user.preferences.preprocess_test_1
     assert_equal true, @user.preferences_preprocess_test_1
   end
 
   def test_postprocess_1
-    @user.preferences.postprocess_test_1 = "blah"
-    assert_equal "blah", @user.preferences.postprocess_test_1
+    @user.preferences.postprocess_test_1 = 'blah'
+    assert_equal 'blah', @user.preferences.postprocess_test_1
     assert_equal false, @user.preferences_postprocess_test_1
 
-    @user.preferences.postprocess_test_1 = "true"
-    assert_equal "true", @user.preferences.postprocess_test_1
+    @user.preferences.postprocess_test_1 = 'true'
+    assert_equal 'true', @user.preferences.postprocess_test_1
     assert_equal true, @user.preferences_postprocess_test_1
   end
 
   def test_default_1
     assert_equal 'funky town', HasEasyUserTest.new.flags.default_test_1
     assert_equal 'funky town', @user.flags.default_test_1
-    @user.flags.default_test_1 = "stupid town"
-    assert_equal "stupid town", @user.flags.default_test_1
+    @user.flags.default_test_1 = 'stupid town'
+    assert_equal 'stupid town', @user.flags.default_test_1
     @user.flags.save
     @user = HasEasyUserTest.find(@user.id)
-    assert_equal "stupid town", @user.flags.default_test_1
+    assert_equal 'stupid town', @user.flags.default_test_1
   end
 
   def test_default_though_1
@@ -315,7 +316,7 @@ class HasEasyTest < Test::Unit::TestCase
     assert_equal false, @user.prefs.form_usage_test
     assert_equal 'false', @user.prefs_form_usage_test
 
-    params = { :person => {:prefs_form_usage_test => 'true'} }
+    params = { person: { prefs_form_usage_test: 'true' } }
     assert @user.update_attributes(params[:person])
     assert_equal true, @user.prefs.form_usage_test
     assert_equal 'true', @user.prefs_form_usage_test
@@ -324,7 +325,7 @@ class HasEasyTest < Test::Unit::TestCase
     assert_equal true, @user.prefs.form_usage_test
     assert_equal 'true', @user.prefs_form_usage_test
 
-    params = { :person => {:prefs_form_usage_test => 'false'} }
+    params = { person: { prefs_form_usage_test: 'false' } }
     assert @user.update_attributes(params[:person])
     assert_equal false, @user.prefs.form_usage_test
     assert_equal 'false', @user.prefs_form_usage_test

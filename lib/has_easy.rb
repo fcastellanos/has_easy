@@ -25,8 +25,6 @@ module Izzle
         # don't let the user redefine a context
         raise ArgumentError, "class #{self} already has_easy('#{context}')" if self.has_easy_configurators.has_key?(context)
 
-
-
         configurator = Configurator.new(self, context, options)
         yield configurator
         configurator.do_metaprogramming_magic_aka_define_methods
@@ -37,7 +35,7 @@ module Izzle
     module InstanceMethods
       def set_has_easy_thing(context, name, value, do_preprocess = false)
         context = Helpers.normalize(context)
-        name = Helpers.normalize(name)
+        name    = Helpers.normalize(name)
 
         # TODO dry this shit out, it's a copy/paste job with get_has_easy_thing
 
@@ -60,12 +58,10 @@ module Izzle
         # if thing already exists, update it, otherwise add a new one
         thing = things.detect{ |thing| thing.name == name }
         if thing.blank?
-          thing = HasEasyThing.new :context => context,
-                                   :name => name,
-                                   :value => value
+          thing = HasEasyThing.new(context: context, name: name, value: value)
           thing.model = self
           #thing.set_model_target(self) # for the bug regarding thing's validation trying to invoke the 'model' assocation when self is a new record
-          send("#{context}").send("<<", thing)
+          send("#{context}").send('<<', thing)
         else
           thing.value = value
         end
@@ -75,7 +71,7 @@ module Izzle
 
       def get_has_easy_thing(context, name, do_postprocess = false)
         context = Helpers.normalize(context)
-        name = Helpers.normalize(name)
+        name    = Helpers.normalize(name)
 
         # check to make sure the context exists
         raise ArgumentError, "has_easy('#{context}') is not defined for class #{self.class}" \
