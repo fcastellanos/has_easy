@@ -1,4 +1,4 @@
-module HasEasy
+module ModelSettings
   class Definition
     attr_accessor :name
     attr_accessor :has_type_check,      :type_check

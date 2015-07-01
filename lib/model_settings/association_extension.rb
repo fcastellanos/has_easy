@@ -1,4 +1,4 @@
-module HasEasy
+module ModelSettings
   module AssocationExtension
     def save
       do_save(false)
@@ -9,11 +9,11 @@ module HasEasy
     end
 
     def []=(name, value)
-      proxy_association.owner.set_has_easy_thing(proxy_association.reflection.name, name, value)
+      proxy_association.owner.set_model_setting(proxy_association.reflection.name, name, value)
     end
 
     def [](name)
-      proxy_association.owner.get_has_easy_thing(proxy_association.reflection.name, name)
+      proxy_association.owner.get_model_setting(proxy_association.reflection.name, name)
     end
 
     def valid?
